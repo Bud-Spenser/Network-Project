@@ -8,15 +8,15 @@ s= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 ip = input ("IP-Adresse: ")
 
 #### set send rate per second
-sendRateBytesPerSecond = 1024 * 1000
+#sendRateBytesPerSecond = 1024 * 1000
 
 ### set runtime in s
-run_time = 2
+#run_time = 2
 #time.time() returns actual time in seconds
-t_end = time.time() + run_time 
+#t_end = time.time() + run_time 
 
 ### calculate total nr of packets
-total_packets = (sendRateBytesPerSecond/1024) * run_time
+#total_packets = (sendRateBytesPerSecond/1024) * run_time
 
 #### use a counter for sequencing
 counter = 0
