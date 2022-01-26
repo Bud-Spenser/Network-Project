@@ -2,10 +2,10 @@ import socket
 import time
 
 # Set up socket
-s= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-#define IP adress of receiver
-ip = input ("IP-Adresse: ")
+# IP of the receiver
+ip = input("IP-Adresse: ")
 
 #### set send rate per second
 #sendRateBytesPerSecond = 1024 * 1000
@@ -31,8 +31,8 @@ for o in range(30):
         ### create data of 1024 bytes with the counter as Input
         data = counter.to_bytes(1024, byteorder="big")
         #send the data to receiver
-        s.sendto(data, (ip,50000))
-        counter +=1
+        s.sendto(data, (ip, 50000))
+        counter += 1
 
     time.sleep(0.48)
 

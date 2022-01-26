@@ -1,88 +1,86 @@
 import socket
 import time
 import statistics
+import typing
+
+# TODO: Check sequence list for missing packets
+# TODO: The server waits until data receival and may not print the stats every period.
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(("", 50000))
     
     print("Server running...")
 
-    PACKET_COUNT= 0
-    sequence_list = []
-    dt = time.time()
-    t_end = dt + 60
+    # === Variables ===
+    # Counts the received packets.
+    packet_count: int = 0
+    # TODO
+    sequence_list: typing.List[int] = []
+    # Time when the server ends.
+    t_end: float = time.time() + 60
 
-    #####################STATS VARIABLES#########################
+    # === Variables for statistics ===
+    # Interval in which the stats are printed in seconds
+    stats_interval: int = 5
+    # Set up a latency list to calculate the mean of the latencies during an interval.
+    latency_list: typing.List[float] = []
+    # Variables for lost and interval packet measurement
+    old_packet_count: int = 0
+    old_packet_lost: int = 0
 
-    #set up a latency List to calculate the mean of the latencys during an interval
-    latency_list = []
-    ### interval in which the stats are printed in seconds
-    stats_interval = 5
-    #variables for lost and interval packet measurement
-    old_packet_count = 0
-    old_packet_lost = 0
-
-    ##################### Looking for packages - main loop ##########################
-
+    # === Receive incoming packets ===
     while True:
-
-        #ends with end of time
+        # End the server when due.
         if time.time() > t_end:
             print(len(sequence_list))
             exit(0)
-        # message is a tuple
+
         daten, addr = s.recvfrom(1024)
-        
-        # received message is the sequence number formatted as a byte string
-        counter = int.from_bytes(daten, byteorder="big")
 
-        #add the sequence number to a sequence list
+        # === STATS ===
+        # Received message is the sequence number formatted as a byte string
+        counter: int = int.from_bytes(daten, byteorder="big")
+
+        # Add the sequence number to a sequence list
         sequence_list.append(counter)
-        # add received packet to packet counter
-        PACKET_COUNT += 1
 
+        packet_count += 1
 
-        ############################ STATS ################################
-
-        ####### start measuring time for the stats ###########
-        if PACKET_COUNT == 1:
+        # Start measuring time for the stats
+        if packet_count == 1:
             start_time = time.time()
-        #### latency can only be calculated if at least two frames are sent ####
-        if PACKET_COUNT > 1 :
+
+        # Latency can only be calculated if at least two frames are sent
+        if packet_count > 1:
             latency_list.append(time.time() - time_last_frame)
 
-        ##### Variable for latency calculation
-        time_last_frame = time.time()
+        # Arrival time of the packet.
+        time_last_frame: float = time.time()
 
-        #### print every definded interval the stats
+        # Print the stats periodically.
         if time.time() > (start_time + stats_interval):
-            
-            interval_packets = PACKET_COUNT - old_packet_count
-            old_packet_count = PACKET_COUNT
+            # The amount of packets in the interval.
+            interval_packets: int = packet_count - old_packet_count
 
-            ###Throughput in kb/s
-            throughput = round((1024 * 0.001 * interval_packets / (time.time()-start_time)),2)
+            # The amount of packets from last period.
+            old_packet_count: int = packet_count
 
-            #### only take the mean of the packets send within the interval
+            # Throughput in KiB/s
+            throughput: float = round((1024 * 0.001 * interval_packets / (time.time() - start_time)), 2)
 
-            latency = statistics.mean(latency_list[-interval_packets:])
-            ###lost frames... letzte Zahl aus sequencelist[], vergleich mit Packet_Count
-            interval_lost = sequence_list[-1] - PACKET_COUNT - old_packet_lost
-            old_packet_lost = sequence_list[-1] - PACKET_COUNT
-            
-            #### lost packages during stats_interval in percent
-            lost_percent = round(interval_lost/interval_packets*100,2)
-            
-            interval = time.time()-start_time
-            #new start time for the real interval
-            start_time = time.time()
-            
-            print("Latenz zwischen den Frames: {}s\nDatenrate: {} kb/s\nVerlorene Frames: {}% ".format(latency, throughput,lost_percent))
-            
-            
+            # Calculate the mean of the packets sent within the interval.
+            latency: float = statistics.mean(latency_list[-interval_packets:])
 
-    
-################ to do : check sequence list for missing packages
-######## timeout server ...
-####Problem : innerhalb der While Schleife muss ein Paket ankommen, damit die stats geprinted werden..
-        
+            # Lost frames
+            # Last element sequence_list[] compared to packet_count
+            interval_lost: int = sequence_list[-1] - packet_count - old_packet_lost
+            old_packet_lost: int = sequence_list[-1] - packet_count
+            
+            # Lost packets during one period in percent
+            lost_percent: float = round(interval_lost / interval_packets * 100, 2)
+
+            # New start time for the real interval
+            start_time: float = time.time()
+            
+            print("Latenz zwischen den Frames: {}s\nDatenrate: {} KiB/s\nVerlorene Frames: {}% "
+                  .format(latency, throughput, lost_percent))
