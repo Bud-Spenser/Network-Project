@@ -44,4 +44,4 @@ for o in range(30):
 
 # Ich kann 120 MB auf den Kanal legen, um den Kanal effizient zu nutzen, dann kommen die ersten Pakete an (Überprüfung, ob Pakete vollständig sind, NACK's schicken..)
 # nach 0.48 s sind erst alle Daten vollständig eingetroffen
-# danach sendet nach Möglichkeit der Empfänger einen Bloom Filter zurück mit nicht empfangegen Frames, um den Kanal nicht zu belasten 
+# danach sendet nach Möglichkeit der Empfänger einen Bloom Filter zurück mit nicht empfangegen Frames, um den Kanal nicht zu belasten
