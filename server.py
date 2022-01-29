@@ -1,10 +1,10 @@
+"""
+A server that listens to port 5000.
+"""
 import socket
 import time
 import statistics
 import typing
-
-# TODO: Check sequence list for missing packets
-# TODO: The server waits until data receival and may not print the stats every period.
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(("", 50000))
@@ -14,7 +14,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     # === Variables ===
     # Counts the received packets.
     packet_count: int = 0
-    # TODO
+    # This is a list of the sent requests' data. Numbers are sent.
     sequence_list: typing.List[int] = []
     # Time when the server ends.
     t_end: float = time.time() + 60
@@ -35,11 +35,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             print(len(sequence_list))
             exit(0)
 
-        daten, addr = s.recvfrom(1024)
+        request, address = s.recvfrom(4096)
 
         # === STATS ===
-        # Received message is the sequence number formatted as a byte string
-        counter: int = int.from_bytes(daten, byteorder="big")
+        # Received message is the sequence number formatted as a byte string.
+        counter: int = int.from_bytes(request, byteorder="big")
 
         # Add the sequence number to a sequence list
         sequence_list.append(counter)
@@ -84,3 +84,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             
             print("Latenz zwischen den Frames: {}s\nDatenrate: {} KiB/s\nVerlorene Frames: {}% "
                   .format(latency, throughput, lost_percent))
+
+        # === Response ===
+        # Sent what we got.
+        s.sendto(str(sequence_list), address)

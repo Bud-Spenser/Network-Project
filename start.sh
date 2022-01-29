@@ -53,9 +53,9 @@ ip netns exec namespace1 tc qdisc add dev veth1 root netem delay 120ms
 ip netns exec namespace1 tc qdisc add dev veth1 root netem rate 500mbit
 ip netns exec namespace1 tc qdisc add dev veth1 root netem loss 1%
 
-ip netns exec namespace2 tc qdisc add dev veth1 root netem delay 120ms
-ip netns exec namespace2 tc qdisc add dev veth1 root netem rate 500mbit
-ip netns exec namespace2 tc qdisc add dev veth1 root netem loss 1%
+ip netns exec namespace2 tc qdisc add dev veth2 root netem delay 120ms
+ip netns exec namespace2 tc qdisc add dev veth2 root netem rate 500mbit
+ip netns exec namespace2 tc qdisc add dev veth2 root netem loss 1%
 
 # Round-Trip-Time erneut messen unter Netzwerkmanipulation
 echo -e "${GREEN}[Round-Trip-Time erneut messen unter Netzwerkmanipulation]${CLEAR_COLOUR}"

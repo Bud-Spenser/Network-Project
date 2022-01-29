@@ -1,22 +1,26 @@
+"""
+A client that sends to port 5000.
+"""
 import socket
 import time
 
 # Set up socket
 s: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# IP of the receiver
-ip: str = input("IP-Adresse: ")
-
 # The counter for the packets.
 counter: int = 0
 
-# Send 120 MB then stop for 0.48 seconds. Repeat 30 times.
+# Send 120 MB, then stop for 0.48 seconds. Repeat 30 times.
 for j in range(30):
     for k in range(120000):
-        now: float = time.time()
         data: bytes = counter.to_bytes(1000, byteorder="big")
-        s.sendto(data, (ip, 50000))
+        s.sendto(data, ("127.0.0.1", 50000))
         counter += 1
+
+    response, address = s.recvfrom(4096)
+
+    # Check the response. TODO
+    print(str(response))
 
     time.sleep(0.48)
 
