@@ -1,8 +1,10 @@
 """
 A client that sends to port 5000.
 """
+import json
 import socket
 import time
+import typing
 
 # Set up socket
 s: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -19,8 +21,14 @@ for j in range(30):
 
     response, address = s.recvfrom(4096)
 
-    # Check the response. TODO
-    print(str(response))
+    # Check the response.
+    print("Response:", response.decode("UTF-8"))
+    json_as_list: typing.List[int] = json.loads(response.decode("UTF-8"))
+
+    # Resend missing packets.
+    for number in json_as_list:
+        data: bytes = number.to_bytes(1000, byteorder="big")
+        s.sendto(data, ("127.0.0.1", 50000))
 
     time.sleep(0.48)
 

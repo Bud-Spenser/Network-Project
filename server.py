@@ -2,6 +2,7 @@
 A server that listens to port 5000.
 """
 import socket
+import sys
 import time
 import statistics
 import typing
@@ -41,8 +42,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         # Received message is the sequence number formatted as a byte string.
         counter: int = int.from_bytes(request, byteorder="big")
 
-        # Add the sequence number to a sequence list
-        sequence_list.append(counter)
+        # Add the sequence number to a sequence list. Reduce the int to 16 bits.
+        sequence_list.append(int.from_bytes(counter.to_bytes(16, byteorder="big"), byteorder="big"))
 
         packet_count += 1
 
@@ -86,5 +87,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                   .format(latency, throughput, lost_percent))
 
         # === Response ===
-        # Sent what we got.
-        s.sendto(str(sequence_list), address)
+        # Sent what is missing.
+        missing: typing.List[int] = []
+        for j in range(packet_count):
+            if j not in sequence_list:
+                missing.append(j)
+
+        s.sendto(str(missing).encode(), address)
