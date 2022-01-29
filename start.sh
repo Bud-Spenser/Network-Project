@@ -88,4 +88,4 @@ ip netns exec namespace1 python ./client.py
 # In Ursprungszustand versetzen
 ## Künstliche Netzwerkmanipulation von netem entfernen
 ip netns exec namespace1 tc qdisc del dev veth1 root
-ip netns exec namespace2 tc qdisc del dev veth1 root
+ip netns exec namespace2 tc qdisc del dev veth2 root
