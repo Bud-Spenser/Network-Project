@@ -1,14 +1,13 @@
 """
-A server that listens to port 5000.
+A server that listens to port 24.
 """
 import socket
-import sys
 import time
 import statistics
 import typing
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-    s.bind(("", 50000))
+    s.bind(("", 24))
     
     print("Server running...")
 

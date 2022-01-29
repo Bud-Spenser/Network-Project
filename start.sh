@@ -21,8 +21,8 @@ ip link set veth1 netns namespace1
 ip link set veth2 netns namespace2
 
 # IP-Adressen hinzufügen
-ip netns exec namespace1 ip addr add 10.0.0.1/24 dev veth1
-ip netns exec namespace2 ip addr add 10.0.0.3/24 dev veth2
+ip netns exec namespace1 ip addr add 192.168.1.11/24 dev veth1
+ip netns exec namespace2 ip addr add 192.168.1.12/24 dev veth2
 
 # Erstelle die Brücke und fahre hoch.
 ip link add name br1 type bridge
@@ -41,44 +41,49 @@ ip link set br-veth1 master br1
 ip link set br-veth2 master br1
 
 # Weise Brücke IP-Adresse hinzu.
-ip addr add 10.0.0.2/24 brd + dev br1
+ip addr add 192.168.1.10/24 brd + dev br1
+
+# Mache externe IPs erreichbar.
+ip -all netns exec ip route add default via 192.168.1.10
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -j MASQUERADE
+sysctl -w net.ipv4.ip_forward=1
 
 # Round-Trip-Time messen
 echo -e "${GREEN}[Round-Trip-Time messen]${CLEAR_COLOUR}"
-ip netns exec namespace1 ping -I veth1 -c3 10.0.0.3
-ip netns exec namespace2 ping -I veth2 -c3 10.0.0.1
+ip netns exec namespace1 ping -I veth1 -c3 192.168.1.12
+ip netns exec namespace2 ping -I veth2 -c3 192.168.1.11
 
 # Netzwerk-Manipulation
 ip netns exec namespace1 tc qdisc add dev veth1 root netem delay 120ms
 ip netns exec namespace1 tc qdisc add dev veth1 root netem rate 500mbit
-ip netns exec namespace1 tc qdisc add dev veth1 root netem loss 1%
+ip netns exec namespace1 tc qdisc add dev veth1 root netem loss 10%
 
 ip netns exec namespace2 tc qdisc add dev veth2 root netem delay 120ms
 ip netns exec namespace2 tc qdisc add dev veth2 root netem rate 500mbit
-ip netns exec namespace2 tc qdisc add dev veth2 root netem loss 1%
+ip netns exec namespace2 tc qdisc add dev veth2 root netem loss 10%
 
 # Round-Trip-Time erneut messen unter Netzwerkmanipulation
 echo -e "${GREEN}[Round-Trip-Time erneut messen unter Netzwerkmanipulation]${CLEAR_COLOUR}"
-ip netns exec namespace1 ping -I veth1 -c3 10.0.0.3
-ip netns exec namespace2 ping -I veth2 -c3 10.0.0.1
+ip netns exec namespace1 ping -I veth1 -c3 192.168.1.12
+ip netns exec namespace2 ping -I veth2 -c3 192.168.1.11
 
 # sockperf nutzen
 echo -e "${GREEN}[sockperf-Test]${CLEAR_COLOUR}"
 tmux kill-session -t sockperf-server
 tmux new-session -s sockperf-server -d "ip netns exec namespace1 sockperf server --tcp"
-ip netns exec namespace2 sockperf ping-pong --tcp -i 10.0.0.1
+ip netns exec namespace2 sockperf ping-pong --tcp -i 192.168.1.11
 
 # iperf nutzen
 echo -e "${GREEN}[iperf-Test]${CLEAR_COLOUR}"
 tmux kill-session -t iperf-server
 tmux new-session -s iperf-server -d "ip netns exec namespace1 iperf -s"
-ip netns exec namespace2 iperf -c 10.0.0.1
+ip netns exec namespace2 iperf -c 192.168.1.11
 
 # Unsere Software nutzen
 echo -e "${GREEN}[Software]${CLEAR_COLOUR}"
 tmux kill-session -t server
-tmux new-session -s server -d "ip netns exec namespace1 python ./server.py"
-ip netns exec namespace2 python ./client.py
+tmux new-session -s server -d "ip netns exec namespace2 python ./server.py"
+ip netns exec namespace1 python ./client.py
 
 # In Ursprungszustand versetzen
 ## Künstliche Netzwerkmanipulation von netem entfernen
