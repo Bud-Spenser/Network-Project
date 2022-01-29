@@ -16,7 +16,7 @@ counter: int = 0
 for j in range(30):
     for k in range(120000):
         data: bytes = counter.to_bytes(1000, byteorder="big")
-        s.sendto(data, ("127.0.0.1", 50000))
+        s.sendto(data, ("10.0.0.2", 24))
         counter += 1
 
     response, address = s.recvfrom(4096)
@@ -28,7 +28,7 @@ for j in range(30):
     # Resend missing packets.
     for number in json_as_list:
         data: bytes = number.to_bytes(1000, byteorder="big")
-        s.sendto(data, ("127.0.0.1", 50000))
+        s.sendto(data, ("10.0.0.2", 24))
 
     time.sleep(0.48)
 

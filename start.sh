@@ -74,6 +74,12 @@ tmux kill-session -t iperf-server
 tmux new-session -s iperf-server -d "ip netns exec namespace1 iperf -s"
 ip netns exec namespace2 iperf -c 10.0.0.1
 
+# Unsere Software nutzen
+echo -e "${GREEN}[Software]${CLEAR_COLOUR}"
+tmux kill-session -t server
+tmux new-session -s server -d "ip netns exec namespace1 python ./server.py"
+ip netns exec namespace2 python ./client.py
+
 # In Ursprungszustand versetzen
 ## Künstliche Netzwerkmanipulation von netem entfernen
 ip netns exec namespace1 tc qdisc del dev veth1 root
