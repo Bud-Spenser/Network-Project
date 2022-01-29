@@ -42,7 +42,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         counter: int = int.from_bytes(request, byteorder="big")
 
         # Add the sequence number to a sequence list. Reduce the int to 16 bits.
-        sequence_list.append(int.from_bytes(counter.to_bytes(16, byteorder="big"), byteorder="big"))
+        sequence_list.append(int.from_bytes(counter.to_bytes(1000, byteorder="big"), byteorder="big"))
 
         packet_count += 1
 
@@ -88,6 +88,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         # === Response ===
         # Sent what is missing.
         missing: typing.List[int] = []
+
+        # todo
+        print("sequence_list:", sequence_list)
+
         for j in range(packet_count):
             if j not in sequence_list:
                 missing.append(j)
