@@ -1,5 +1,5 @@
 """
-A server that listens to port 24.
+A server that listens to port 1024.
 """
 import socket
 import time
@@ -7,7 +7,7 @@ import statistics
 import typing
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-    s.bind(("", 24))
+    s.bind(("", 1024))
     
     print("Server running...")
 
@@ -39,10 +39,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
         # === STATS ===
         # Received message is the sequence number formatted as a byte string.
-        counter: int = int.from_bytes(request, byteorder="big")
+        received_number: int = int.from_bytes(request, byteorder="big")
+
+        # todo
+        print("received_number:", received_number)
 
         # Add the sequence number to a sequence list. Reduce the int to 16 bits.
-        sequence_list.append(int.from_bytes(counter.to_bytes(1000, byteorder="big"), byteorder="big"))
+        sequence_list.append(received_number)
 
         packet_count += 1
 
@@ -90,10 +93,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         missing: typing.List[int] = []
 
         # todo
-        print("sequence_list:", sequence_list)
+        print("len(sequence_list):", len(sequence_list))
 
-        for j in range(packet_count):
-            if j not in sequence_list:
-                missing.append(j)
+        # for j in range(packet_count):
+        #     if j not in sequence_list:
+        #         missing.append(j)
 
-        s.sendto(str(missing).encode(), address)
+        s.sendto(str("200").encode(), address)
