@@ -34,11 +34,11 @@ start_time: float = -1.0
 # The time the packet before the current one arrived.
 time_last_packet: float = -1.0
 
-# The amount of packets in the interval before the current period.
+# The amount of packets in the previous interval.
 packets_amount_previous: int = 0
 
 # The amount of lost packets in the previous period.
-packets_lost_previous: int = -1
+packets_lost_previous: int = 0
 
 # === Receive incoming packets ===
 while True:
@@ -68,35 +68,36 @@ while True:
         # Calculate the mean latency of the packets sent within the interval.
         latency: float = statistics.mean(latencies[-packets_amount_current:])
 
-        # The amount of lost packets in this period
-        interval_lost_packets: int = 120000 - packets_amount
-        interval_lost: int = sequence[-1] - packets_amount - packets_lost_previous
-        packets_lost_previous: int = sequence[-1] - packets_amount
+        # The amount of lost packets in this period.
+        interval_lost_packets: int = received_number - packets_amount - packets_lost_previous
 
         # Lost packets during one period in percent.
         lost_percent: float = round(interval_lost_packets / packets_amount_current * 100, 2)
 
-        print("Latenz zwischen den Frames: {}s\nDatenrate: {} KiB/s\nVerlorene Packets: {}% "
+        print("Latenz zwischen den Packets: {} s\nDatenrate: {} KiB/s\nVerlorene Packets: {}% "
               .format(latency, throughput, lost_percent))
 
-        packets_amount_previous: int = packets_amount
+        # Set some variables.
         start_time: float = time.time()
+        packets_lost_previous: int = interval_lost_packets
 
     # === Response ===
-    # Sent what is missing.
-    missing: typing.List[int] = []
-
-    # todo
-    print("len(sequence_list):", len(sequence))
-
-    # for j in range(packet_count):
-    #     if j not in sequence_list:
-    #         missing.append(j)
-
     sock.sendto(str("200").encode(), address)
+
+    # TODO What if last number does not arrive?
+    # Sent what is missing.
+    if received_number == 119999:
+        missing: typing.List[int] = []
+
+        for j in range(120000):
+            if j not in sequence:
+                missing.append(j)
+
+        sock.sendto(str(missing).encode(), address)
 
     # Set some variables.
     time_last_packet = time.time()
+    packets_amount_previous: int = packets_amount
 
     # Reset some variables.
     packets_size = 0
