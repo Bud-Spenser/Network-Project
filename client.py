@@ -6,7 +6,8 @@ resent after all remaining data was sent.
 === Ausbreitungsverzögerung ===
 35786 km / 300000 km/s = 0,12 s
 0,24 s bis zum anderen Empfänger auf der Erde, da von Klient zu Satellit, von Satellit zum Empfänger.
-Mit Berücksichtigung der Antworten
+Mit Berücksichtigung der Antworten, die geschickt werden müssen kommen, noch einmal zusätzlich 0,24 s hinzu.
+In Summe 0,48 s.
 
 === Datarate-Delay-Produkt ===
 Datenrate = 500 MB/s
@@ -15,9 +16,7 @@ Datarate-Delay-Produkt = 120 MB
 
 === Zusammenfassung ===
 Man kann 120 MB auf den Kanal legen, um den Kanal voll auszunutzen.
-Nach 0,48 s sind erst alle Daten vollständig eingetroffen.
-Danach sendet nach Möglichkeit der Empfänger einen Bloom-Filter zurück mit nicht empfangegen Frames,
-um den Kanal nicht zu belasten.
+Nach 0,48 s sind erst alle Daten vollständig verarbeitet.
 """
 import socket
 import time
