@@ -9,17 +9,17 @@ import statistics
 import typing
 
 sock: socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(("localhost", 1024))
+sock.bind(("", 24))
 print("Server running...")
 
 # === Variables ===
-# Counts the received packets.
+# Counts the received packets in one period.
 packets_amount: int = 0
 
 # The size of all packet in one period in bits.
 packets_size: int = 0
 
-# This is a list of the sent requests' data. Numbers are sent.
+# This is a list of the sent requests' data in one period. Numbers are sent.
 sequence: typing.List[int] = []
 
 # Latencies between two arriving packets.
@@ -33,9 +33,6 @@ start_time: float = -1.0
 
 # The time the packet before the current one arrived.
 time_last_packet: float = -1.0
-
-# The amount of packets in the previous interval.
-packets_amount_previous: int = 0
 
 # The amount of lost packets in the previous period.
 packets_lost_previous: int = 0
@@ -57,47 +54,46 @@ while True:
     if packets_amount > 1:
         latencies.append(time.time() - time_last_packet)
 
-    # Print the stats periodically.
-    if time.time() >= (start_time + stats_interval):
-        # The amount of packets in the interval.
-        packets_amount_current: int = packets_amount - packets_amount_previous
-
-        # Throughput in KiB/s
-        throughput: float = round((packets_amount_current / 1024 / (time.time() - start_time)), 2)
-
-        # Calculate the mean latency of the packets sent within the interval.
-        latency: float = statistics.mean(latencies[-packets_amount_current:])
-
-        # The amount of lost packets in this period.
-        interval_lost_packets: int = received_number - packets_amount - packets_lost_previous
-
-        # Lost packets during one period in percent.
-        lost_percent: float = round(interval_lost_packets / packets_amount_current * 100, 2)
-
-        print("Latenz zwischen den Packets: {} s\nDatenrate: {} KiB/s\nVerlorene Packets: {}% "
-              .format(latency, throughput, lost_percent))
-
-        # Set some variables.
-        start_time: float = time.time()
-        packets_lost_previous: int = interval_lost_packets
-
     # === Response ===
     sock.sendto(str("200").encode(), address)
 
-    # TODO What if last number does not arrive?
     # Sent what is missing.
-    if received_number == 119999:
+    if received_number in [-1 + i * 120000 for i in range(1, 31)]:
         missing: typing.List[int] = []
 
-        for j in range(120000):
+        for j in range(sequence[0], sequence[-1]):
             if j not in sequence:
                 missing.append(j)
 
         sock.sendto(str(missing).encode(), address)
 
+    # Print the stats periodically.
+    if time.time() >= (start_time + stats_interval):
+        # Throughput in KiB/s
+        throughput: float = round((packets_size / 1024 / (time.time() - start_time)), 2)
+
+        # Calculate the mean latency of the packets sent within the interval.
+        latency_avg: float = sum(latencies) / len(latencies)
+
+        # The amount of lost packets in this period.
+        # Should be amount of packets: sequence[-1] - sequence[]
+        # Actual amount: len(sequence)
+        interval_lost_packets: int = sequence[-1] - sequence[0] - len(sequence)
+
+        # Lost packets during one period in percent.
+        lost_percent: float = round(interval_lost_packets / packets_amount * 100, 2)
+
+        print("Latenz zwischen den Packets: {} s\nDatenrate: {} KiB/s\nVerlorene Packets: {}% \n"
+              .format(latency_avg, throughput, lost_percent))
+
+        # Set some variables.
+        start_time: float = time.time()
+        packets_amount = 0
+
+        # Reset some variables.
+        packets_size = 0
+        latencies = []
+        sequence = []
+
     # Set some variables.
     time_last_packet = time.time()
-    packets_amount_previous: int = packets_amount
-
-    # Reset some variables.
-    packets_size = 0

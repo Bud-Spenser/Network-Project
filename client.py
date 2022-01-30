@@ -30,18 +30,22 @@ list_of_missing_bodies: typing.List[int] = []
 for j in range(30):
     for k in range(120000):
         request_body_bytes: bytes = request_body.to_bytes(1000, byteorder="big")
-        # s.sendto(data, ("192.168.1.12", 1024))  # todo
-        sock.sendto(request_body_bytes, ("localhost", 1024))  # todo
+        sock.sendto(request_body_bytes, ("192.168.1.12", 24))  # todo
+        # sock.sendto(request_body_bytes, ("localhost", 1024))  # todo
+        # IMPORTANT: At this point, it takes some time as the server needs to handle the load.
         response, response_address = sock.recvfrom(4096)
 
         if response.decode("UTF-8") != "200":
             list_of_missing_bodies.append(request_body)
 
         request_body += 1
+        print("Request body:", request_body)
+
+    print("Missing data:", list_of_missing_bodies)
 
     # At the end of the sent 120 MB chunk, resend the missing bodies.
     for missing_body in list_of_missing_bodies:
-        # sock.sendto(missing_body, ("192.168.1.12", 1024))  # todo
-        sock.sendto(missing_body, ("localhost", 1024))  # todo
+        sock.sendto(missing_body.to_bytes(1000, byteorder="big"), ("192.168.1.12", 24))  # todo
+        # sock.sendto(missing_body.to_bytes(1000, byteorder="big"), ("localhost", 1024))  # todo
 
     time.sleep(0.48)

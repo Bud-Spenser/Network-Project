@@ -21,8 +21,8 @@ ip link set veth1 netns namespace1
 ip link set veth2 netns namespace2
 
 # IP-Adressen hinzufügen
-ip netns exec namespace1 ip addr add 192.168.1.11/1024 dev veth1
-ip netns exec namespace2 ip addr add 192.168.1.12/1024 dev veth2
+ip netns exec namespace1 ip addr add 192.168.1.11/24 dev veth1
+ip netns exec namespace2 ip addr add 192.168.1.12/24 dev veth2
 
 # Erstelle die Brücke und fahre hoch.
 ip link add name br1 type bridge
@@ -41,11 +41,11 @@ ip link set br-veth1 master br1
 ip link set br-veth2 master br1
 
 # Weise Brücke IP-Adresse hinzu.
-ip addr add 192.168.1.10/1024 brd + dev br1
+ip addr add 192.168.1.10/24 brd + dev br1
 
 # Mache externe IPs erreichbar.
 ip -all netns exec ip route add default via 192.168.1.10
-iptables -t nat -A POSTROUTING -s 192.168.1.0/1024 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -j MASQUERADE
 sysctl -w net.ipv4.ip_forward=1
 
 # Round-Trip-Time messen
